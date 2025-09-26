@@ -1,9 +1,7 @@
-package com.example.airline.entities;
+package com.example.airline.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 
 @Entity
 @Getter
@@ -11,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Airline {
+public class Airport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -19,7 +17,5 @@ public class Airline {
 
     private String code;
     private String name;
-
-    @OneToMany(mappedBy = "airline")
-    private List<Flight> flights;
+    private String city;
 }

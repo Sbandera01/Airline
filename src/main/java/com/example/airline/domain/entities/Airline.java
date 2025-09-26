@@ -1,9 +1,9 @@
-package com.example.airline.entities;
+package com.example.airline.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -11,14 +11,15 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Tag {
+public class Airline {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    private String code;
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
-    private Set<Flight> flights;
+    @OneToMany(mappedBy = "airline")
+    private List<Flight> flights;
 }

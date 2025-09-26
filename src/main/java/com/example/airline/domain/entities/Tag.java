@@ -1,7 +1,9 @@
-package com.example.airline.entities;
+package com.example.airline.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.Set;
 
 @Entity
 @Getter
@@ -9,13 +11,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PassengerProfile {
+public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String phone;
-    private String countryCode;
-}
+    private String name;
 
+    @ManyToMany(mappedBy = "tags")
+    private Set<Flight> flights;
+}

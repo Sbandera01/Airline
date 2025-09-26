@@ -1,4 +1,4 @@
-package com.example.airline.entities;
+package com.example.airline.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,13 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Airport {
+public class PassengerProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String code;
-    private String name;
-    private String city;
+    private String phone;
+    private String countryCode;
 }
+

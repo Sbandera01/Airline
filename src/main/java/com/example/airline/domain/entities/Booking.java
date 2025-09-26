@@ -1,4 +1,4 @@
-package com.example.airline.entities;
+package com.example.airline.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
