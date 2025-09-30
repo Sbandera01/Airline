@@ -2,17 +2,22 @@ package com.example.airline.api.mapper;
 
 import com.example.airline.api.dto.TagDtos;
 import com.example.airline.domain.entities.Tag;
+import org.mapstruct.*;
 
-public class TagMapper {
+import java.util.Set;
 
-    public static Tag toEntity(TagDtos.TagCreateRequest dto) {
-        if (dto == null) return null;
-        return Tag.builder().name(dto.name()).build();
-    }
+@Mapper(config = MapStructConfig.class, componentModel = "spring")
+public interface TagMapper {
 
-    public static TagDtos.TagResponse toResponse(Tag entity) {
-        if (entity == null) return null;
-        return new TagDtos.TagResponse(entity.getId(), entity.getName());
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    Tag toEntity(TagDtos.TagCreateRequest dto);
+
+    TagDtos.TagResponse toResponse(Tag entity);
+
+    Set<TagDtos.TagResponse> toResponseSet(Set<Tag> entities);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(@MappingTarget Tag entity, TagDtos.TagCreateRequest dto);
 }
 

@@ -1,22 +1,21 @@
 package com.example.airline.api.mapper;
 
-import com.example.airline.api.dto.AirlineDtos;
+import com.example.airline.api.dto.AirlineDtos.*;
 import com.example.airline.domain.entities.Airline;
+import org.mapstruct.*;
 
-public class AirlineMapper {
+@Mapper(config = MapStructConfig.class, componentModel = "spring")
+public interface AirlineMapper {
 
-    public static Airline toEntity(AirlineDtos.AirlineCreateRequest dto) {
-        if (dto == null) return null;
-        return Airline.builder()
-                .code(dto.code())
-                .name(dto.name())
-                .build();
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    Airline toEntity(AirlineCreateRequest dto);
 
-    public static AirlineDtos.AirlineResponse toResponse(Airline entity) {
-        if (entity == null) return null;
-        return new AirlineDtos.AirlineResponse(entity.getId(), entity.getCode(), entity.getName());
-    }
+    AirlineResponse toResponse(Airline entity);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(@MappingTarget Airline entity, AirlineCreateRequest dto);
 }
+
 
 

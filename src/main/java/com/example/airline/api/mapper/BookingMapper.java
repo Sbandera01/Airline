@@ -1,52 +1,72 @@
 package com.example.airline.api.mapper;
 
-import com.example.airline.api.dto.BookingDtos;
-import com.example.airline.domain.entities.Booking;
-import com.example.airline.domain.entities.BookingItem;
+import com.example.airline.api.dto.BookingDtos.*;
+import com.example.airline.domain.entities.*;
+import com.example.airline.domain.repositories.*;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BookingMapper {
+@Mapper(
+        config = MapStructConfig.class,
+        componentModel = "spring",
+        uses = {PassengerMapper.class, FlightMapper.class}
+)
+public abstract class BookingMapper {
 
-    public static Booking toEntity(BookingDtos.BookingCreateRequest dto) {
-        if (dto == null) return null;
-        Booking booking = new Booking();
-        // passenger se asocia en el service
-        return booking;
+    @Autowired
+    protected PassengerRepository passengerRepository;
+
+    @Autowired
+    protected FlightRepository flightRepository;
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", expression = "java(java.time.OffsetDateTime.now())")
+    @Mapping(target = "passenger", source = "passengerEmail", qualifiedByName = "emailToPassenger")
+    @Mapping(target = "items", source = "items", qualifiedByName = "itemRequestsToEntities")
+    public abstract Booking toEntity(BookingCreateRequest dto);
+
+    public abstract BookingResponse toResponse(Booking entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "flight", source = "flightId", qualifiedByName = "flightIdToEntity")
+    public abstract BookingItem toItemEntity(BookingItemRequest dto);
+
+    public abstract BookingItemResponse toItemResponse(BookingItem entity);
+
+    public abstract List<BookingItemResponse> toItemResponseList(List<BookingItem> entities);
+
+    @Named("emailToPassenger")
+    protected Passenger mapEmailToPassenger(String email) {
+        return email == null ? null :
+                passengerRepository.findByEmailIgnoreCase(email)
+                        .orElseThrow(() -> new IllegalArgumentException("Passenger not found with email: " + email));
     }
 
-    public static BookingItem toEntity(BookingDtos.BookingItemRequest dto) {
-        if (dto == null) return null;
-        BookingItem item = new BookingItem();
-        item.setCabin(dto.cabin());
-        item.setPrice(dto.price());
-        item.setSegmentOrder(dto.segmentOrder());
-        // flight se asigna en el service
-        return item;
+    @Named("flightIdToEntity")
+    protected Flight mapFlightId(Long flightId) {
+        return flightId == null ? null :
+                flightRepository.findById(flightId)
+                        .orElseThrow(() -> new IllegalArgumentException("Flight not found with id: " + flightId));
     }
 
-    public static BookingDtos.BookingResponse toResponse(Booking entity) {
-        if (entity == null) return null;
-        List<BookingDtos.BookingItemResponse> items = entity.getItems() == null ? List.of() :
-                entity.getItems().stream().map(BookingMapper::toResponse).collect(Collectors.toList());
-        return new BookingDtos.BookingResponse(
-                entity.getId(),
-                entity.getCreatedAt(),
-                PassengerMapper.toResponse(entity.getPassenger()),
-                items
-        );
+    @Named("itemRequestsToEntities")
+    protected List<BookingItem> mapItemRequests(List<BookingItemRequest> itemRequests) {
+        if (itemRequests == null || itemRequests.isEmpty()) {
+            return List.of();
+        }
+        return itemRequests.stream()
+                .map(this::toItemEntity)
+                .collect(Collectors.toList());
     }
 
-    public static BookingDtos.BookingItemResponse toResponse(BookingItem entity) {
-        if (entity == null) return null;
-        return new BookingDtos.BookingItemResponse(
-                entity.getId(),
-                entity.getCabin(),
-                entity.getPrice(),
-                entity.getSegmentOrder(),
-                FlightMapper.toResponse(entity.getFlight())
-        );
+    @AfterMapping
+    protected void linkItemsToBooking(@MappingTarget Booking booking) {
+        if (booking.getItems() != null) {
+            booking.getItems().forEach(item -> item.setBooking(booking));
+        }
     }
 }
-
