@@ -14,13 +14,17 @@ class PassengerRepositoryTest extends BaseIntegrationTest {
 
     @Autowired
     PassengerRepository passengerRepository;
+    @Autowired
+    private PassengerProfileRepository passengerProfileRepository;
 
     @Test
     void shouldFindPassengerByEmailIgnoreCase() {
-        PassengerProfile profile = PassengerProfile.builder()
-                .phone("12345")
-                .countryCode("CO")
-                .build();
+        PassengerProfile profile = passengerProfileRepository.save(
+                PassengerProfile.builder()
+                        .phone("12345")
+                        .countryCode("CO")
+                        .build()
+        );
 
         Passenger saved = passengerRepository.save(
                 Passenger.builder()
@@ -38,10 +42,12 @@ class PassengerRepositoryTest extends BaseIntegrationTest {
 
     @Test
     void shouldFetchPassengerWithProfile() {
-        PassengerProfile profile = PassengerProfile.builder()
-                .phone("98765")
-                .countryCode("US")
-                .build();
+        PassengerProfile profile = passengerProfileRepository.save(
+                PassengerProfile.builder()
+                        .phone("98765")
+                        .countryCode("US")
+                        .build()
+        );
 
         passengerRepository.save(
                 Passenger.builder()

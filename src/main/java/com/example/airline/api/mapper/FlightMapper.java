@@ -1,8 +1,6 @@
 package com.example.airline.api.mapper;
 
 import com.example.airline.api.dto.FlightDtos;
-import com.example.airline.api.dto.AirlineDtos;
-import com.example.airline.api.dto.AirportDtos;
 import com.example.airline.api.dto.TagDtos;
 import com.example.airline.domain.entities.Flight;
 

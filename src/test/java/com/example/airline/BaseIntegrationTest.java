@@ -15,7 +15,8 @@ public abstract class BaseIntegrationTest {
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("test_db")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withEnv("POSTGRES_PASSWORD", "test");
 
     @DynamicPropertySource
     static void overrideProps(DynamicPropertyRegistry registry) {
