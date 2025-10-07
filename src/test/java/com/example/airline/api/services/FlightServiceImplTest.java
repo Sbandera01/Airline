@@ -1,6 +1,10 @@
 package com.example.airline.api.services;
 
+import com.example.airline.api.dto.AirlineDtos;
+import com.example.airline.api.dto.AirportDtos;
 import com.example.airline.api.dto.FlightDtos;
+import com.example.airline.api.dto.TagDtos;
+import com.example.airline.api.mapper.FlightMapper;
 import com.example.airline.domain.entities.*;
 import com.example.airline.domain.repositories.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +42,9 @@ class FlightServiceImplTest {
     @Mock
     private TagRepository tagRepository;
 
+    @Mock
+    private FlightMapper flightMapper;
+
     @InjectMocks
     private FlightServiceImpl flightService;
 
@@ -46,6 +53,7 @@ class FlightServiceImplTest {
     private Airport origin;
     private Airport destination;
     private Tag tag;
+    private FlightDtos.FlightResponse flightResponse;
 
     @BeforeEach
     void setUp() {
@@ -84,6 +92,18 @@ class FlightServiceImplTest {
                 .destination(destination)
                 .tags(new HashSet<>(Set.of(tag)))
                 .build();
+
+        // Response DTO mockeo
+        flightResponse = new FlightDtos.FlightResponse(
+                1L,
+                "AA123",
+                flight.getDepartureTime(),
+                flight.getArrivalTime(),
+                new AirlineDtos.AirlineResponse(1L, "AA", "American Airlines"),
+                new AirportDtos.AirportResponse(1L, "JFK", "John F. Kennedy", "New York"),
+                new AirportDtos.AirportResponse(2L, "LAX", "Los Angeles International", "Los Angeles"),
+                Set.of(new TagDtos.TagResponse(1L, "Direct"))
+        );
     }
 
     @Test
@@ -102,6 +122,8 @@ class FlightServiceImplTest {
 
         Tag popularTag = Tag.builder().id(2L).name("Popular").build();
 
+        when(flightMapper.toEntity(request)).thenReturn(flight);
+        when(flightMapper.toResponse(any(Flight.class))).thenReturn(flightResponse);
         when(airlineRepository.findById(1L)).thenReturn(Optional.of(airline));
         when(airportRepository.findById(1L)).thenReturn(Optional.of(origin));
         when(airportRepository.findById(2L)).thenReturn(Optional.of(destination));
@@ -117,7 +139,9 @@ class FlightServiceImplTest {
         assertThat(response).isNotNull();
         assertThat(response.number()).isEqualTo("AA123");
         verify(flightRepository, times(1)).save(any(Flight.class));
-        verify(tagRepository, times(1)).save(any(Tag.class)); // Se crea el tag "Popular"
+        verify(tagRepository, times(1)).save(any(Tag.class));
+        verify(flightMapper, times(1)).toEntity(request);
+        verify(flightMapper, times(1)).toResponse(any(Flight.class));
     }
 
     @Test
@@ -134,6 +158,7 @@ class FlightServiceImplTest {
                 null
         );
 
+        when(flightMapper.toEntity(request)).thenReturn(flight);
         when(airlineRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -156,6 +181,7 @@ class FlightServiceImplTest {
                 null
         );
 
+        when(flightMapper.toEntity(request)).thenReturn(flight);
         when(airlineRepository.findById(1L)).thenReturn(Optional.of(airline));
         when(airportRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -179,6 +205,7 @@ class FlightServiceImplTest {
                 null
         );
 
+        when(flightMapper.toEntity(request)).thenReturn(flight);
         when(airlineRepository.findById(1L)).thenReturn(Optional.of(airline));
         when(airportRepository.findById(1L)).thenReturn(Optional.of(origin));
         when(airportRepository.findById(999L)).thenReturn(Optional.empty());
@@ -194,6 +221,7 @@ class FlightServiceImplTest {
     void testFindById_Success() {
         // Arrange
         when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         FlightDtos.FlightResponse response = flightService.findById(1L);
@@ -203,6 +231,7 @@ class FlightServiceImplTest {
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.number()).isEqualTo("AA123");
         verify(flightRepository, times(1)).findById(1L);
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -223,6 +252,7 @@ class FlightServiceImplTest {
         // Arrange
         List<Flight> flights = List.of(flight);
         when(flightRepository.findAll()).thenReturn(flights);
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         List<FlightDtos.FlightResponse> responses = flightService.findAll();
@@ -230,6 +260,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().number()).isEqualTo("AA123");
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -238,6 +269,7 @@ class FlightServiceImplTest {
         // Arrange
         when(flightRepository.findByAirline_Name("American Airlines"))
                 .thenReturn(List.of(flight));
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         List<FlightDtos.FlightResponse> responses =
@@ -246,6 +278,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().airline().name()).isEqualTo("American Airlines");
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -260,6 +293,7 @@ class FlightServiceImplTest {
         when(flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(
                 "JFK", "LAX", from, to, pageable))
                 .thenReturn(flightPage);
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         Page<FlightDtos.FlightResponse> responses =
@@ -268,6 +302,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(responses.getContent()).hasSize(1);
         assertThat(responses.getTotalElements()).isEqualTo(1);
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -279,6 +314,7 @@ class FlightServiceImplTest {
 
         when(flightRepository.searchWithAssociations("JFK", "LAX", from, to))
                 .thenReturn(List.of(flight));
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         List<FlightDtos.FlightResponse> responses =
@@ -288,6 +324,7 @@ class FlightServiceImplTest {
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().origin().code()).isEqualTo("JFK");
         assertThat(responses.getFirst().destination().code()).isEqualTo("LAX");
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -297,6 +334,7 @@ class FlightServiceImplTest {
         List<String> tags = List.of("Direct", "Popular");
         when(flightRepository.findFlightsWithAllTags(tags, 2L))
                 .thenReturn(List.of(flight));
+        when(flightMapper.toResponse(flight)).thenReturn(flightResponse);
 
         // Act
         List<FlightDtos.FlightResponse> responses =
@@ -305,6 +343,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(responses).hasSize(1);
         verify(flightRepository, times(1)).findFlightsWithAllTags(tags, 2L);
+        verify(flightMapper, times(1)).toResponse(flight);
     }
 
     @Test
@@ -317,6 +356,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(responses).isEmpty();
         verify(flightRepository, never()).findFlightsWithAllTags(anyList(), anyLong());
+        verify(flightMapper, never()).toResponse(any());
     }
 
     @Test
@@ -341,6 +381,7 @@ class FlightServiceImplTest {
         when(airportRepository.findById(2L)).thenReturn(Optional.of(destination));
         when(tagRepository.findByName("Updated")).thenReturn(Optional.of(updatedTag));
         when(flightRepository.save(any(Flight.class))).thenReturn(flight);
+        when(flightMapper.toResponse(any(Flight.class))).thenReturn(flightResponse);
 
         // Act
         FlightDtos.FlightResponse response = flightService.update(1L, request);
@@ -348,6 +389,7 @@ class FlightServiceImplTest {
         // Assert
         assertThat(response).isNotNull();
         verify(flightRepository, times(1)).save(any(Flight.class));
+        verify(flightMapper, times(1)).toResponse(any(Flight.class));
     }
 
     @Test

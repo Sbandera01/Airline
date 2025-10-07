@@ -7,6 +7,7 @@ import com.example.airline.domain.entities.SeatInventory;
 import com.example.airline.domain.repositories.FlightRepository;
 import com.example.airline.domain.repositories.SeatInventoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
 
     private final SeatInventoryRepository seatInventoryRepository;
     private final FlightRepository flightRepository;
+    private final SeatInventoryMapper seatInventoryMapper;
 
     @Override
     @Transactional
@@ -35,17 +37,17 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
                             request.flightId() + " and cabin " + request.cabin());
                 });
 
-        SeatInventory seatInventory = SeatInventoryMapper.toEntity(request);
+        SeatInventory seatInventory = seatInventoryMapper.toEntity(request);
         seatInventory.setFlight(flight);
         seatInventory = seatInventoryRepository.save(seatInventory);
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override
     public SeatInventoryDtos.SeatInventoryResponse findById(Long id) {
         SeatInventory seatInventory = seatInventoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Seat inventory not found with id: " + id));
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override
@@ -53,13 +55,13 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
         SeatInventory seatInventory = seatInventoryRepository.findByFlight_IdAndCabin(flightId, cabin)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Seat inventory not found for flight " + flightId + " and cabin " + cabin));
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override
     public List<SeatInventoryDtos.SeatInventoryResponse> findAll() {
         return seatInventoryRepository.findAll().stream()
-                .map(SeatInventoryMapper::toResponse)
+                .map(seatInventoryMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -82,7 +84,7 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
 
         seatInventory.setAvailableSeats(seatInventory.getAvailableSeats() - quantity);
         seatInventory = seatInventoryRepository.save(seatInventory);
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override
@@ -100,7 +102,7 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
 
         seatInventory.setAvailableSeats(newAvailable);
         seatInventory = seatInventoryRepository.save(seatInventory);
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override
@@ -118,7 +120,7 @@ public class SeatInventoryServiceImpl implements SeatInventoryService {
         seatInventory.setAvailableSeats(request.totalSeats());
 
         seatInventory = seatInventoryRepository.save(seatInventory);
-        return SeatInventoryMapper.toResponse(seatInventory);
+        return seatInventoryMapper.toResponse(seatInventory);
     }
 
     @Override

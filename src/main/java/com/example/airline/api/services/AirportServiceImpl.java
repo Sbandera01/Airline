@@ -5,6 +5,7 @@ import com.example.airline.api.mapper.AirportMapper;
 import com.example.airline.domain.entities.Airport;
 import com.example.airline.domain.repositories.AirportRepository;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class AirportServiceImpl implements AirportService {
 
     private final AirportRepository airportRepository;
+    private final AirportMapper airportMapper;
 
     @Override
     @Transactional
@@ -25,29 +27,29 @@ public class AirportServiceImpl implements AirportService {
             throw new IllegalArgumentException("Airport with code " + request.code() + " already exists");
         });
 
-        Airport airport = AirportMapper.toEntity(request);
+        Airport airport = airportMapper.toEntity(request);
         airport = airportRepository.save(airport);
-        return AirportMapper.toResponse(airport);
+        return airportMapper.toResponse(airport);
     }
 
     @Override
     public AirportDtos.AirportResponse findById(Long id) {
         Airport airport = airportRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Airport not found with id: " + id));
-        return AirportMapper.toResponse(airport);
+        return airportMapper.toResponse(airport);
     }
 
     @Override
     public AirportDtos.AirportResponse findByCode(String code) {
         Airport airport = airportRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalArgumentException("Airport not found with code: " + code));
-        return AirportMapper.toResponse(airport);
+        return airportMapper.toResponse(airport);
     }
 
     @Override
     public List<AirportDtos.AirportResponse> findAll() {
         return airportRepository.findAll().stream()
-                .map(AirportMapper::toResponse)
+                .map(airportMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -61,7 +63,7 @@ public class AirportServiceImpl implements AirportService {
         airport.setName(request.name());
         airport.setCity(request.city());
         airport = airportRepository.save(airport);
-        return AirportMapper.toResponse(airport);
+        return airportMapper.toResponse(airport);
     }
 
     @Override

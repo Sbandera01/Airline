@@ -2,26 +2,15 @@ package com.example.airline.api.mapper;
 
 import com.example.airline.api.dto.SeatInventoryDtos;
 import com.example.airline.domain.entities.SeatInventory;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class SeatInventoryMapper {
+@Mapper(componentModel = "spring")
+public interface SeatInventoryMapper {
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flight", ignore = true)
+    @Mapping(target = "availableSeats", source = "totalSeats")
+    SeatInventory toEntity(SeatInventoryDtos.SeatInventoryCreateRequest dto);
 
-    public static SeatInventory toEntity(SeatInventoryDtos.SeatInventoryCreateRequest dto) {
-        if (dto == null) return null;
-        return SeatInventory.builder()
-                .cabin(dto.cabin())
-                .totalSeats(dto.totalSeats())
-                .availableSeats(dto.totalSeats()) // inicialmente disponibles = total
-                .build();
-    }
-
-    public static SeatInventoryDtos.SeatInventoryResponse toResponse(SeatInventory entity) {
-        if (entity == null) return null;
-        return new SeatInventoryDtos.SeatInventoryResponse(
-                entity.getId(),
-                entity.getCabin(),
-                entity.getTotalSeats(),
-                entity.getAvailableSeats()
-        );
-    }
+    SeatInventoryDtos.SeatInventoryResponse toResponse(SeatInventory entity);
 }
-

@@ -1,38 +1,19 @@
 package com.example.airline.api.mapper;
 
 import com.example.airline.api.dto.FlightDtos;
-import com.example.airline.api.dto.TagDtos;
 import com.example.airline.domain.entities.Flight;
+import org.mapstruct.*;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public class FlightMapper {
+@Mapper(componentModel = "spring", uses = {AirlineMapper.class, AirportMapper.class, TagMapper.class})
+public interface FlightMapper {
 
-    public static Flight toEntity(FlightDtos.FlightCreateRequest dto) {
-        if (dto == null) return null;
-        Flight flight = new Flight();
-        flight.setNumber(dto.number());
-        flight.setDepartureTime(dto.departureTime());
-        flight.setArrivalTime(dto.arrivalTime());
-        // airline, origin, destination y tags deben setearse en el service
-        return flight;
-    }
+    @Mapping(target = "id",ignore = true)
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    Flight toEntity(FlightDtos.FlightCreateRequest dto);
 
-    public static FlightDtos.FlightResponse toResponse(Flight entity) {
-        if (entity == null) return null;
-        Set<TagDtos.TagResponse> tags = entity.getTags() == null ? Set.of() :
-                entity.getTags().stream().map(TagMapper::toResponse).collect(Collectors.toSet());
-        return new FlightDtos.FlightResponse(
-                entity.getId(),
-                entity.getNumber(),
-                entity.getDepartureTime(),
-                entity.getArrivalTime(),
-                AirlineMapper.toResponse(entity.getAirline()),
-                AirportMapper.toResponse(entity.getOrigin()),
-                AirportMapper.toResponse(entity.getDestination()),
-                tags
-        );
-    }
+    FlightDtos.FlightResponse toResponse(Flight entity);
 }
-

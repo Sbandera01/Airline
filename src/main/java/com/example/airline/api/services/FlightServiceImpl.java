@@ -25,11 +25,12 @@ public class FlightServiceImpl implements FlightService {
     private final AirlineRepository airlineRepository;
     private final AirportRepository airportRepository;
     private final TagRepository tagRepository;
+    private final FlightMapper flightMapper;
 
     @Override
     @Transactional
     public FlightDtos.FlightResponse create(FlightDtos.FlightCreateRequest request) {
-        Flight flight = FlightMapper.toEntity(request);
+        Flight flight = flightMapper.toEntity(request);
 
         // Asociar aerolínea
         Airline airline = airlineRepository.findById(request.airlineId())
@@ -57,28 +58,28 @@ public class FlightServiceImpl implements FlightService {
             flight.setTags(tags);
         }
 
-        flight = flightRepository.save(flight);
-        return FlightMapper.toResponse(flight);
+
+        return flightMapper.toResponse(flightRepository.save(flight));
     }
 
     @Override
     public FlightDtos.FlightResponse findById(Long id) {
         Flight flight = flightRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Flight not found with id: " + id));
-        return FlightMapper.toResponse(flight);
+        return flightMapper.toResponse(flight);
     }
 
     @Override
     public List<FlightDtos.FlightResponse> findAll() {
         return flightRepository.findAll().stream()
-                .map(FlightMapper::toResponse)
+                .map(flightMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<FlightDtos.FlightResponse> findByAirlineName(String airlineName) {
         return flightRepository.findByAirline_Name(airlineName).stream()
-                .map(FlightMapper::toResponse)
+                .map(flightMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -88,14 +89,14 @@ public class FlightServiceImpl implements FlightService {
                                                          Pageable pageable) {
         return flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(
                         origin, destination, from, to, pageable)
-                .map(FlightMapper::toResponse);
+                .map(flightMapper::toResponse);
     }
 
     @Override
     public List<FlightDtos.FlightResponse> searchWithAssociations(String origin, String destination,
                                                                   OffsetDateTime from, OffsetDateTime to) {
         return flightRepository.searchWithAssociations(origin, destination, from, to).stream()
-                .map(FlightMapper::toResponse)
+                .map(flightMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -105,7 +106,7 @@ public class FlightServiceImpl implements FlightService {
             return List.of();
         }
         return flightRepository.findFlightsWithAllTags(tags, tags.size()).stream()
-                .map(FlightMapper::toResponse)
+                .map(flightMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -146,7 +147,7 @@ public class FlightServiceImpl implements FlightService {
         }
 
         flight = flightRepository.save(flight);
-        return FlightMapper.toResponse(flight);
+        return flightMapper.toResponse(flight);
     }
 
     @Override

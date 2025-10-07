@@ -5,6 +5,7 @@ import com.example.airline.api.mapper.PassengerMapper;
 import com.example.airline.domain.entities.Passenger;
 import com.example.airline.domain.repositories.PassengerRepository;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class PassengerServiceImpl implements PassengerService {
 
     private final PassengerRepository passengerRepository;
+    private final PassengerMapper passengerMapper;
 
     @Override
     @Transactional
@@ -25,29 +27,29 @@ public class PassengerServiceImpl implements PassengerService {
             throw new IllegalArgumentException("Passenger with email " + request.email() + " already exists");
         });
 
-        Passenger passenger = PassengerMapper.toEntity(request);
+        Passenger passenger = passengerMapper.toEntity(request);
         passenger = passengerRepository.save(passenger);
-        return PassengerMapper.toResponse(passenger);
+        return passengerMapper.toResponse(passenger);
     }
 
     @Override
     public PassengerDtos.PassengerResponse findById(Long id) {
         Passenger passenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Passenger not found with id: " + id));
-        return PassengerMapper.toResponse(passenger);
+        return passengerMapper.toResponse(passenger);
     }
 
     @Override
     public PassengerDtos.PassengerResponse findByEmail(String email) {
         Passenger passenger = passengerRepository.findByEmailIgnoreCaseWithProfile(email)
                 .orElseThrow(() -> new IllegalArgumentException("Passenger not found with email: " + email));
-        return PassengerMapper.toResponse(passenger);
+        return passengerMapper.toResponse(passenger);
     }
 
     @Override
     public List<PassengerDtos.PassengerResponse> findAll() {
         return passengerRepository.findAll().stream()
-                .map(PassengerMapper::toResponse)
+                .map(passengerMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -72,12 +74,12 @@ public class PassengerServiceImpl implements PassengerService {
                 passenger.getProfile().setPhone(request.profile().phone());
                 passenger.getProfile().setCountryCode(request.profile().countryCode());
             } else {
-                passenger.setProfile(PassengerMapper.toEntity(request).getProfile());
+                passenger.setProfile(passengerMapper.toEntity(request).getProfile());
             }
         }
 
         passenger = passengerRepository.save(passenger);
-        return PassengerMapper.toResponse(passenger);
+        return passengerMapper.toResponse(passenger);
     }
 
     @Override

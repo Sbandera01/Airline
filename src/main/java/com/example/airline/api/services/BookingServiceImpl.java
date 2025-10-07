@@ -29,6 +29,7 @@ public class BookingServiceImpl implements BookingService {
     private final PassengerRepository passengerRepository;
     private final FlightRepository flightRepository;
     private final SeatInventoryService seatInventoryService;
+    private final BookingMapper bookingMapper;
 
     @Override
     @Transactional
@@ -69,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
             Flight flight = flightRepository.findById(itemRequest.flightId()).get();
 
             // Crear el item
-            BookingItem item = BookingMapper.toEntity(itemRequest);
+            BookingItem item = bookingMapper.toEntity(itemRequest);
             item.setBooking(booking);
             item.setFlight(flight);
             item = bookingItemRepository.save(item);
@@ -84,34 +85,34 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setItems(items);
-        return BookingMapper.toResponse(booking);
+        return bookingMapper.toResponse(booking);
     }
 
     @Override
     public BookingDtos.BookingResponse findById(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found with id: " + id));
-        return BookingMapper.toResponse(booking);
+        return bookingMapper.toResponse(booking);
     }
 
     @Override
     public BookingDtos.BookingResponse findByIdWithDetails(Long id) {
         Booking booking = bookingRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found with id: " + id));
-        return BookingMapper.toResponse(booking);
+        return bookingMapper.toResponse(booking);
     }
 
     @Override
     public List<BookingDtos.BookingResponse> findAll() {
         return bookingRepository.findAll().stream()
-                .map(BookingMapper::toResponse)
+                .map(bookingMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Page<BookingDtos.BookingResponse> findByPassengerEmail(String email, Pageable pageable) {
         return bookingRepository.findByPassenger_EmailIgnoreCaseOrderByCreatedAtDesc(email, pageable)
-                .map(BookingMapper::toResponse);
+                .map(bookingMapper::toResponse);
     }
 
     @Override
@@ -122,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookingItemRepository.findByBooking_IdOrderBySegmentOrderAsc(bookingId).stream()
-                .map(BookingMapper::toResponse)
+                .map(bookingMapper::toResponse)
                 .collect(Collectors.toList());
     }
 

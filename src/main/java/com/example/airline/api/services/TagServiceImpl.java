@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class TagServiceImpl implements TagService {
 
     private final TagRepository tagRepository;
+    private final TagMapper tagMapper;
 
     @Override
     @Transactional
@@ -25,29 +26,29 @@ public class TagServiceImpl implements TagService {
             throw new IllegalArgumentException("Tag with name " + request.name() + " already exists");
         });
 
-        Tag tag = TagMapper.toEntity(request);
+        Tag tag = tagMapper.toEntity(request);
         tag = tagRepository.save(tag);
-        return TagMapper.toResponse(tag);
+        return tagMapper.toResponse(tag);
     }
 
     @Override
     public TagDtos.TagResponse findById(Long id) {
         Tag tag = tagRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found with id: " + id));
-        return TagMapper.toResponse(tag);
+        return tagMapper.toResponse(tag);
     }
 
     @Override
     public TagDtos.TagResponse findByName(String name) {
         Tag tag = tagRepository.findByName(name)
                 .orElseThrow(() -> new IllegalArgumentException("Tag not found with name: " + name));
-        return TagMapper.toResponse(tag);
+        return tagMapper.toResponse(tag);
     }
 
     @Override
     public List<TagDtos.TagResponse> findAll() {
         return tagRepository.findAll().stream()
-                .map(TagMapper::toResponse)
+                .map(tagMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -59,7 +60,7 @@ public class TagServiceImpl implements TagService {
 
         tag.setName(request.name());
         tag = tagRepository.save(tag);
-        return TagMapper.toResponse(tag);
+        return tagMapper.toResponse(tag);
     }
 
     @Override
