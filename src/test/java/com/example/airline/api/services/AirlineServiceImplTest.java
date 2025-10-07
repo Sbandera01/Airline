@@ -106,7 +106,7 @@ class AirlineServiceImplTest {
         when(airlineRepository.findAll()).thenReturn(airlines);
 
         // Act
-        List<AirlineDtos.AirlineResponse> responses = new ArrayList<>();
+        List<AirlineDtos.AirlineResponse> responses;
         responses = airlineService.findAll();
 
         // Assert

@@ -5,7 +5,6 @@ import com.example.airline.api.mapper.PassengerMapper;
 import com.example.airline.domain.entities.Passenger;
 import com.example.airline.domain.repositories.PassengerRepository;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
